@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HealthTech Reminder - Login/Register</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #4e54c8, #8f94fb);
+      color: white;
+      margin: 0; padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: rgba(255,255,255,0.1);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      padding: 40px;
+      width: 350px;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 10px;
+      font-weight: 900;
+      font-size: 2rem;
+    }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .tab {
+      flex: 1;
+      padding: 10px 0;
+      cursor: pointer;
+      font-weight: 700;
+      border-bottom: 3px solid transparent;
+      transition: border-color 0.3s ease;
+    }
+    .tab.active {
+      border-color: #a29bfe;
+    }
+    form {
+      display: none;
+      flex-direction: column;
+      gap: 15px;
+    }
+    form.active {
+      display: flex;
+    }
+    input {
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      font-size: 1rem;
+    }
+    button {
+      background: #6c63ff;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #574b90;
+    }
+    .message {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #ffd700;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>HealthTech Reminder</h1>
+    <div class="tabs">
+      <div class="tab active" data-role="patient">Patient</div>
+      <div class="tab" data-role="doctor">Doctor</div>
+    </div>
+
+    <!-- Login Form -->
+    <form id="loginForm" class="active">
+      <input type="email" id="loginEmail" placeholder="Email" required />
+      <input type="password" id="loginPassword" placeholder="Password" required />
+      <button type="submit">Login</button>
+      <p class="message" id="loginMessage"></p>
+    </form>
+
+    <!-- Register Form -->
+    <form id="registerForm">
+      <input type="text" id="registerName" placeholder="Full Name" required />
+      <input type="email" id="registerEmail" placeholder="Email" required />
+      <input type="password" id="registerPassword" placeholder="Password" required />
+      <button type="submit">Register</button>
+      <p class="message" id="registerMessage"></p>
+    </form>
+
+    <p style="margin-top:20px; cursor:pointer; color:#a29bfe;" id="toggleForms">Don't have an account? Register here</p>
+  </div>
+
+  <script>
+    const tabs = document.querySelectorAll('.tab');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const toggleFormsText = document.getElementById('toggleForms');
+    let currentRole = 'patient';
+
+    // Switch role tabs
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentRole = tab.dataset.role;
+        clearMessages();
+      });
+    });
+
+    // Toggle between login/register forms
+    toggleFormsText.addEventListener('click', () => {
+      if (loginForm.classList.contains('active')) {
+        loginForm.classList.remove('active');
+        registerForm.classList.add('active');
+        toggleFormsText.textContent = "Already have an account? Login here";
+      } else {
+        registerForm.classList.remove('active');
+        loginForm.classList.add('active');
+        toggleFormsText.textContent = "Don't have an account? Register here";
+      }
+      clearMessages();
+    });
+
+    function clearMessages() {
+      document.getElementById('loginMessage').textContent = '';
+      document.getElementById('registerMessage').textContent = '';
+    }
+
+    // Backend API URL
+    const API_URL = 'http://localhost:5000';
+
+    // Login submit handler
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMessages();
+
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+
+      try {
+        const res = await fetch(`${API_URL}/login`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ email, password, role: currentRole }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          document.getElementById('loginMessage').textContent = data.message || 'Login failed';
+          return;
+        }
+
+        // Save token & user info in localStorage
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        alert(`Welcome ${data.user.name}! Redirecting to your dashboard...`);
+
+        // Redirect based on role
+        if (data.user.role === 'doctor') {
+          window.location.href = '/doctor-dashboard.html';
+        } else {
+          window.location.href = '/patient-dashboard.html';
+        }
+      } catch (err) {
+        document.getElementById('loginMessage').textContent = 'Network error, try again.';
+      }
+    });
+
+    // Register submit handler
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMessages();
+
+      const name = document.getElementById('registerName').value.trim();
+      const email = document.getElementById('registerEmail').value.trim();
+      const password = document.getElementById('registerPassword').value.trim();
+
+      try {
+        const res = await fetch(`${API_URL}/register`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ name, email, password, role: currentRole }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          document.getElementById('registerMessage').textContent = data.message || 'Registration failed';
+          return;
+        }
+
+        alert('Registration successful! You can now login.');
+        registerForm.reset();
+        // Switch back to login form
+        registerForm.classList.remove('active');
+        loginForm.classList.add('active');
+        toggleFormsText.textContent = "Don't have an account? Register here";
+      } catch (err) {
+        document.getElementById('registerMessage').textContent = 'Network error, try again.';
+      }
+    });
+  </script>
+</body>
+</html>
