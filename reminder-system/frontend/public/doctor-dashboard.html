@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Doctor Dashboard</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #4e54c8;
+      background: linear-gradient(135deg, #4e54c8, #8f94fb);
+      color: white;
+      margin: 0; padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    header {
+      width: 100%;
+      background: rgba(0,0,0,0.3);
+      padding: 15px 20px;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+    .content {
+      flex: 1;
+      width: 90%;
+      max-width: 900px;
+      margin-top: 40px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 15px;
+      padding: 30px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    button {
+      background: #a29bfe;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 10px;
+      color: #2d3436;
+      cursor: pointer;
+      font-weight: 700;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #6c63ff;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div id="welcomeMsg">Welcome, Doctor</div>
+    <button id="logoutBtn">Logout</button>
+  </header>
+  <div class="content">
+    <h2>Doctor Dashboard</h2>
+    <p>This is your appointment dashboard area. You can build your doctor-specific features here.</p>
+  </div>
+
+  <script>
+    // Check if user is logged in and is doctor
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || user.role !== 'doctor') {
+      alert('Access denied. Please login as doctor.');
+      window.location.href = '/index.html';
+    } else {
+      document.getElementById('welcomeMsg').textContent = `Welcome, Dr. ${user.name}`;
+    }
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.clear();
+      window.location.href = '/index.html';
+    });
+  </script>
+</body>
+</html>
